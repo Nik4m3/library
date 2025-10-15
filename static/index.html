@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Библиотека</title>
+    <style>
+        :root{--b:#e5e7eb;--g:#f9fafb;--card:#f7f7fb}
+        *{box-sizing:border-box}
+        body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:#fff;color:#111;max-width:1200px;margin:20px auto;padding:0 12px}
+        header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:8px}
+        nav a{padding:6px 10px;border:1px solid var(--b);border-radius:8px;text-decoration:none;color:#111;background:#fff}
+        .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+        .tabs button{padding:8px 10px;border:1px solid var(--b);background:#fff;border-radius:8px;cursor:pointer}
+        section{border:1px solid var(--b);border-radius:12px;padding:12px;margin:12px 0;background:#fff}
+        h2{margin:0 0 10px}
+        .row{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+        input,select,button{padding:8px;border:1px solid var(--b);border-radius:8px}
+        button.primary{background:#111;color:#fff;border-color:#111}
+        table{border-collapse:collapse;width:100%;background:#fff}
+        th,td{border:1px solid var(--b);padding:6px;vertical-align:top}
+        th{background:var(--g)}
+        .right{text-align:right}
+        .muted{color:#666}
+        select[multiple]{min-width:280px;min-height:140px}
+        .report-card{border:1px dashed var(--b);border-radius:12px;background:var(--card);padding:12px;margin:14px 0}
+        .report-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+    </style>
+</head>
+<body>
+<header>
+    <h1>Библиотека</h1>
+    <nav>
+        <a href="/?tab=books" target="_blank">Книги</a>
+        <a href="/?tab=users" target="_blank">Пользователи</a>
+        <a href="/?tab=rooms" target="_blank">Залы</a>
+        <a href="/?tab=authors" target="_blank">Авторы</a>
+        <a href="/?tab=places" target="_blank">Города</a>
+        <a href="/?tab=publishers" target="_blank">Издательства</a>
+        <a href="/?tab=groups" target="_blank">Группы</a>
+        <a href="/?tab=loans" target="_blank">Выдачи</a>
+        <a href="/?tab=reports" target="_blank">Отчёты</a>
+    </nav>
+</header>
+
+<div class="tabs">
+    <button data-tab="books">Книги</button>
+    <button data-tab="users">Пользователи</button>
+    <button data-tab="rooms">Залы</button>
+    <button data-tab="authors">Авторы</button>
+    <button data-tab="places">Города</button>
+    <button data-tab="publishers">Издательства</button>
+    <button data-tab="groups">Группы</button>
+    <button data-tab="loans">Выдачи</button>
+    <button data-tab="reports">Отчёты</button>
+</div>
+
+<!-- BOOKS -->
+<section class="tab" id="tab-books">
+    <h2>Книги</h2>
+    <div class="row">
+        <input id="b_title" placeholder="Название" style="min-width:260px" required>
+        <select id="b_author" required></select>
+        <input id="b_year" type="number" placeholder="Год" min="1" max="3000" style="width:110px" required>
+        <select id="b_group" required></select>
+        <select id="b_place" required></select>
+        <select id="b_publisher" required></select>
+        <input id="b_pages" type="number" placeholder="Страниц" min="1" value="1" style="width:120px" required>
+        <input id="b_copies" type="number" placeholder="Экз." value="1" min="1" style="width:100px" required>
+        <select id="b_room" required></select>
+        <button class="primary" id="btnAddBook">Добавить</button>
+        <button id="btnReloadBooks">Обновить</button>
+    </div>
+    <table id="books_tbl"></table>
+</section>
+
+<section class="tab" id="tab-users" hidden>
+    <h2>Пользователи</h2>
+    <div class="row">
+        <input id="u_name" placeholder="ФИО" style="min-width:260px">
+        <input id="u_birth" placeholder="ДД/ММ/ГГГГ" style="width:140px">
+        <input id="u_phone" placeholder="+7 (951) 1234567" style="width:160px">
+        <button class="primary" id="btnAddUser">Добавить</button>
+        <button id="btnReloadUsers">Обновить</button>
+    </div>
+    <table id="users_tbl"></table>
+</section>
+
+<section class="tab" id="tab-rooms" hidden>
+    <h2>Читальные залы</h2>
+    <div class="row">
+        <input id="r_name" placeholder="Название зала" style="min-width:240px">
+        <button class="primary" id="btnAddRoom">Добавить</button>
+        <button id="btnReloadRooms">Обновить</button>
+    </div>
+    <table id="rooms_tbl"></table>
+</section>
+
+<section class="tab" id="tab-authors" hidden>
+    <h2>Авторы</h2>
+    <div class="row">
+        <input id="a_name" placeholder="Имя автора" style="min-width:240px">
+        <button class="primary" id="btnAddAuthor">Добавить</button>
+        <button id="btnReloadAuthors">Обновить</button>
+    </div>
+    <table id="authors_tbl"></table>
+</section>
+
+<section class="tab" id="tab-places" hidden>
+    <h2>Города</h2>
+    <div class="row">
+        <input id="p_name" placeholder="Город" style="min-width:240px">
+        <button class="primary" id="btnAddPlace">Добавить</button>
+        <button id="btnReloadPlaces">Обновить</button>
+    </div>
+    <table id="places_tbl"></table>
+</section>
+
+<section class="tab" id="tab-publishers" hidden>
+    <h2>Издательства</h2>
+    <div class="row">
+        <input id="ph_name" placeholder="Издательство" style="min-width:240px">
+        <button class="primary" id="btnAddPublisher">Добавить</button>
+        <button id="btnReloadPublishers">Обновить</button>
+    </div>
+    <table id="publishers_tbl"></table>
+</section>
+
+<section class="tab" id="tab-groups" hidden>
+    <h2>Группы</h2>
+    <div class="row">
+        <input id="g_name" placeholder="Группа" style="min-width:240px">
+        <button class="primary" id="btnAddGroup">Добавить</button>
+        <button id="btnReloadGroups">Обновить</button>
+    </div>
+    <table id="groups_tbl"></table>
+</section>
+
+<section class="tab" id="tab-loans" hidden>
+    <h2>Выдачи</h2>
+    <div class="row">
+        <select id="l_user"></select>
+        <select id="l_book"></select>
+        <input id="l_issue" placeholder="ДД/ММ/ГГГГ" style="width:140px">
+        <button class="primary" id="btnIssue">Выдать</button>
+        <button id="btnShowActive">Активные</button>
+        <button id="btnShowAll">Все</button>
+    </div>
+    <table id="loans_tbl"></table>
+</section>
+
+<section class="tab" id="tab-reports" hidden>
+    <h2>Отчёты</h2>
+
+    <div class="report-card">
+        <div class="report-head">
+            <input id="rep_year" type="number" placeholder="Год" value="2025" style="width:120px">
+            <button class="primary" id="btnRep1">Выдачи по месяцам</button>
+            <button onclick="toggleBox('rep1_box')">Скрыть/показать</button>
+        </div>
+        <div id="rep1_box"><table id="rep1_tbl"></table></div>
+    </div>
+
+    <div class="report-card">
+        <div class="report-head">
+            <button class="primary" id="btnRep2">Старейшая книга в каждом зале</button>
+            <button onclick="toggleBox('rep2_box')">Скрыть/показать</button>
+        </div>
+        <div id="rep2_box"><table id="rep2_tbl"></table></div>
+    </div>
+
+    <div class="report-card">
+        <div class="report-head">
+            <div style="display:flex;flex-direction:column;gap:6px">
+                <label for="rep_groups">Выберите группы (мультивыбор)</label>
+                <select id="rep_groups" multiple size="6"></select>
+            </div>
+            <button class="primary" id="btnRep3">Залы с книгами выбранных групп</button>
+            <button onclick="toggleBox('rep3_box')">Скрыть/показать</button>
+        </div>
+        <div id="rep3_box"><table id="rep3_tbl"></table></div>
+    </div>
+
+    <div class="report-card">
+        <div class="report-head">
+            <button class="primary" id="btnRep4">ТОП-5 за прошедший месяц</button>
+            <button onclick="toggleBox('rep4_box')">Скрыть/показать</button>
+        </div>
+        <div id="rep4_box"><table id="rep4_tbl"></table></div>
+    </div>
+</section>
+
+<script>
+    (() => {
+        const $ = id => document.getElementById(id);
+        const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+
+        function toggleBox(id){ const el=$(id); if(el) el.hidden=!el.hidden; }
+        window.toggleBox = toggleBox;
+
+        function showTab(name){
+            document.querySelectorAll('.tab').forEach(x=>x.hidden=true);
+            (document.getElementById('tab-'+name)||document.getElementById('tab-books')).hidden=false;
+            if(name==='books') loadBooks();
+            if(name==='users') loadUsers();
+            if(name==='rooms') loadRooms();
+            if(name==='authors') loadAuthors();
+            if(name==='places') loadPlaces();
+            if(name==='publishers') loadPublishers();
+            if(name==='groups') loadGroups();
+            if(name==='loans') { loadUsersForLoans(); loadBooksOptions(); loadLoans(true); }
+            if(name==='reports') { loadGroupsForReport(); }
+        }
+        document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
+        const initTab = new URL(location.href).searchParams.get('tab') || 'books';
+
+        async function jget(url){ const r=await fetch(url); if(!r.ok) throw new Error(await r.text()); return r.json(); }
+        async function jpost(url, body){ const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(!r.ok) throw new Error(await r.text()); try{ return await r.json(); }catch{return {ok:true}} }
+        async function jput(url, body){ const r=await fetch(url,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(!r.ok) throw new Error(await r.text()); try{ return await r.json(); }catch{return {ok:true}} }
+        async function jdel(url){ const r=await fetch(url,{method:'DELETE'}); if(!r.ok) throw new Error(await r.text()); }
+
+        async function loadAuthors(){ const data=await jget('/api/authors'); renderDictTable('authors_tbl', data, 'Автор', '/api/authors/'); fillSelect('b_author', data, true); }
+        async function loadPlaces(){ const data=await jget('/api/places'); renderDictTable('places_tbl', data, 'Город', '/api/places/'); fillSelect('b_place', data, true); }
+        async function loadPublishers(){ const data=await jget('/api/publishers'); renderDictTable('publishers_tbl', data, 'Издательство', '/api/publishers/'); fillSelect('b_publisher', data, true); }
+        async function loadGroups(){ const data=await jget('/api/groups'); renderDictTable('groups_tbl', data, 'Группа', '/api/groups/'); fillSelect('b_group', data, true); }
+        async function loadRooms(){ const data=await jget('/api/rooms'); renderDictTable('rooms_tbl', data, 'Зал', '/api/rooms/'); fillSelect('b_room', data, true); }
+
+        function fillSelect(id, arr, requireChoose=false){
+            const el=$(id); if(!el || !Array.isArray(arr)) return;
+            const opts = (arr||[]).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`);
+            if(requireChoose) opts.unshift('<option value="" selected>— выберите —</option>');
+            el.innerHTML = opts.join('');
+        }
+
+        function renderDictTable(tableId, rows, title, pathPrefix){
+            const tbl=$(tableId);
+            tbl.innerHTML = `<tr><th>${esc(title)}</th><th></th></tr>`;
+            (rows||[]).forEach(row=>{
+                const tr=document.createElement('tr');
+                tr.innerHTML = `<td class="name">${esc(row.name)}</td><td class="actions"></td>`;
+                const act=tr.querySelector('.actions');
+                const edit=document.createElement('button'); edit.textContent='Ред.';
+                edit.onclick=()=>{
+                    const cell=tr.querySelector('.name'); const val=cell.textContent;
+                    cell.innerHTML=`<input value="${esc(val)}" style="min-width:240px">`;
+                    act.innerHTML='';
+                    const save=document.createElement('button'); save.textContent='Сохранить';
+                    save.onclick=async()=>{
+                        const newName=cell.querySelector('input').value.trim();
+                        try{ await jput(pathPrefix+row.id, {name:newName}); await reloadForTable(tableId); await maybeRefreshBookSelects(); }catch(e){ alert(e.message); }
+                    };
+                    const cancel=document.createElement('button'); cancel.textContent='Отмена'; cancel.style.marginLeft='6px'; cancel.onclick=()=>reloadForTable(tableId);
+                    act.append(save,cancel);
+                };
+                const del=document.createElement('button'); del.textContent='Удалить'; del.style.marginLeft='6px';
+                del.onclick=async()=>{ if(!confirm('Удалить запись?')) return; try{ await jdel(pathPrefix+row.id); await reloadForTable(tableId); await maybeRefreshBookSelects(); }catch(e){ alert(e.message);} };
+                act.append(edit,del);
+                tbl.appendChild(tr);
+            });
+        }
+        async function reloadForTable(tableId){
+            if(tableId==='authors_tbl') return loadAuthors();
+            if(tableId==='places_tbl') return loadPlaces();
+            if(tableId==='publishers_tbl') return loadPublishers();
+            if(tableId==='groups_tbl') return loadGroups();
+            if(tableId==='rooms_tbl') return loadRooms();
+        }
+        async function maybeRefreshBookSelects(){
+            try{
+                const [authors, places, publishers, groups, rooms] = await Promise.all([
+                    jget('/api/authors').catch(()=>[]),
+                    jget('/api/places').catch(()=>[]),
+                    jget('/api/publishers').catch(()=>[]),
+                    jget('/api/groups').catch(()=>[]),
+                    jget('/api/rooms').catch(()=>[]),
+                ]);
+                fillSelect('b_author', authors, true);
+                fillSelect('b_place', places, true);
+                fillSelect('b_publisher', publishers, true);
+                fillSelect('b_group', groups, true);
+                fillSelect('b_room', rooms, true);
+            }catch{}
+        }
+
+        async function loadBooks(){
+            await maybeRefreshBookSelects();
+            try{
+                const data = await jget('/api/books');
+                const tbl = $('books_tbl');
+                tbl.innerHTML = '<tr><th>Название</th><th>Автор</th><th>Год</th><th>Группа</th><th>Город</th><th>Издательство</th><th class="right">Стр.</th><th class="right">Экз.</th><th>Зал</th><th></th></tr>';
+                (data||[]).forEach(row=>{
+                    const tr=document.createElement('tr');
+                    tr.innerHTML = `
+          <td class="title">${esc(row.title)}</td>
+          <td class="author">${esc(row.author_name)}</td>
+          <td class="year">${row.pub_year}</td>
+          <td class="group">${esc(row.group_name)}</td>
+          <td class="place">${esc(row.place_name)}</td>
+          <td class="publisher">${esc(row.publisher_name)}</td>
+          <td class="pages right">${row.pages}</td>
+          <td class="copies right">${row.copies}</td>
+          <td class="room">${esc(row.room_name)}</td>
+          <td class="actions"></td>`;
+                    const act=tr.querySelector('.actions');
+
+                    const edit=document.createElement('button'); edit.textContent='Ред.';
+                    edit.onclick=()=>{
+                        tr.querySelector('.title').innerHTML = `<input value="${esc(row.title)}" style="min-width:180px">`;
+                        tr.querySelector('.author').innerHTML   = selectHTML('b_author',   row.author_id);
+                        tr.querySelector('.group').innerHTML    = selectHTML('b_group',    row.group_id);
+                        tr.querySelector('.place').innerHTML    = selectHTML('b_place',    row.place_id);
+                        tr.querySelector('.publisher').innerHTML= selectHTML('b_publisher',row.publisher_id);
+                        tr.querySelector('.room').innerHTML     = selectHTML('b_room',     row.room_id);
+                        tr.querySelector('.year').innerHTML     = `<input type="number" value="${row.pub_year}" style="width:100px">`;
+                        tr.querySelector('.pages').innerHTML    = `<input type="number" value="${row.pages}" style="width:90px">`;
+                        tr.querySelector('.copies').innerHTML   = `<input type="number" value="${row.copies}" style="width:80px">`;
+
+                        act.innerHTML='';
+                        const save=document.createElement('button'); save.textContent='Сохранить';
+                        save.onclick=async()=>{
+                            const body={
+                                title: tr.querySelector('.title input').value.trim(),
+                                author_id: tr.querySelector('.author select').value,
+                                pub_year: +tr.querySelector('.year input').value,
+                                group_id: tr.querySelector('.group select').value,
+                                place_id: tr.querySelector('.place select').value,
+                                publisher_id: tr.querySelector('.publisher select').value,
+                                pages: +tr.querySelector('.pages input').value,
+                                copies: +tr.querySelector('.copies input').value,
+                                room_id: tr.querySelector('.room select').value
+                            };
+                            if(!body.title||!body.author_id||!body.group_id||!body.place_id||!body.publisher_id||!body.room_id||!body.pages){
+                                alert('Заполните все обязательные поля'); return;
+                            }
+                            try{ await jput('/api/books/'+row.id, body); await loadBooks(); }catch(e){ alert(e.message); }
+                        };
+                        const cancel=document.createElement('button'); cancel.textContent='Отмена'; cancel.style.marginLeft='6px'; cancel.onclick=()=>loadBooks();
+                        act.append(save,cancel);
+                    };
+
+                    const del=document.createElement('button'); del.textContent='Удалить'; del.style.marginLeft='6px';
+                    del.onclick=async()=>{ if(!confirm('Удалить книгу?')) return; try{ await jdel('/api/books/'+row.id); await loadBooks(); }catch(e){ alert(e.message);} };
+                    act.append(edit,del);
+
+                    tbl.appendChild(tr);
+                });
+            }catch(e){ alert(e.message); }
+        }
+        function selectHTML(fromSelectId, current){
+            const src=$(fromSelectId); if(!src) return '<span class="muted">—</span>';
+            const html = Array.from(src.options)
+                .filter(o=>o.value!=='')
+                .map(o=>`<option value="${o.value}" ${o.value===String(current)?'selected':''}>${esc(o.textContent)}</option>`).join('');
+            return `<select>${html}</select>`;
+        }
+        async function addBook(){
+            const body = {
+                title: $('b_title').value.trim(),
+                author_id: $('b_author').value,
+                pub_year: +$('b_year').value,
+                group_id: $('b_group').value,
+                place_id: $('b_place').value,
+                publisher_id: $('b_publisher').value,
+                pages: +$('b_pages').value,
+                copies: +$('b_copies').value,
+                room_id: $('b_room').value
+            };
+            if(!body.title||!body.author_id||!body.group_id||!body.place_id||!body.publisher_id||!body.room_id||!body.pages){
+                alert('Заполните все обязательные поля и выберите значения из списков'); return;
+            }
+            try{
+                await jpost('/api/books', body);
+                $('b_title').value=''; $('b_year').value=''; $('b_pages').value='1'; $('b_copies').value='1';
+                ['b_author','b_group','b_place','b_publisher','b_room'].forEach(id=>{ const el=$(id); if(el) el.selectedIndex=0; });
+                await loadBooks();
+            }catch(e){ alert(e.message); }
+        }
+        $('btnAddBook').onclick = addBook;
+        $('btnReloadBooks').onclick = loadBooks;
+
+        async function loadUsers(){
+            try{
+                const data = await jget('/api/users');
+                const tbl = $('users_tbl');
+                tbl.innerHTML = '<tr><th>ФИО</th><th>Дата рождения</th><th>Телефон</th><th>Билет</th><th></th></tr>';
+                (data||[]).forEach(row=>{
+                    const tr=document.createElement('tr');
+                    tr.innerHTML = `
+          <td class="name">${esc(row.name)}</td>
+          <td class="dob">${esc(row.date_birth)}</td>
+          <td class="phone">${esc(row.phone||'')}</td>
+          <td class="ticket right">${row.ticket_number}</td>
+          <td class="actions"></td>`;
+                    const act=tr.querySelector('.actions');
+                    const edit=document.createElement('button'); edit.textContent='Ред.';
+                    edit.onclick=()=>{
+                        tr.querySelector('.name').innerHTML  = `<input value="${esc(row.name)}" style="min-width:220px">`;
+                        tr.querySelector('.dob').innerHTML   = `<input value="${esc(row.date_birth)}" placeholder="ДД/ММ/ГГГГ" style="width:140px">`;
+                        tr.querySelector('.phone').innerHTML = `<input value="${esc(row.phone||'')}" placeholder="+7 (951) 1234567" style="width:160px">`;
+                        act.innerHTML='';
+                        const save=document.createElement('button'); save.textContent='Сохранить';
+                        save.onclick=async()=>{
+                            const body={ name: tr.querySelector('.name input').value.trim(),
+                                date_birth: tr.querySelector('.dob input').value.trim(),
+                                phone: tr.querySelector('.phone input').value.trim() || null };
+                            try{ await jput('/api/users/'+row.id, body); await loadUsers(); }catch(e){ alert(e.message); }
+                        };
+                        const cancel=document.createElement('button'); cancel.textContent='Отмена'; cancel.style.marginLeft='6px'; cancel.onclick=()=>loadUsers();
+                        act.append(save,cancel);
+                    };
+                    const del=document.createElement('button'); del.textContent='Удалить'; del.style.marginLeft='6px';
+                    del.onclick=async()=>{ if(!confirm('Удалить пользователя?')) return; try{ await jdel('/api/users/'+row.id); await loadUsers(); }catch(e){ alert(e.message);} };
+                    act.append(edit,del);
+                    tbl.appendChild(tr);
+                });
+            }catch(e){ alert(e.message); }
+        }
+        $('btnAddUser').onclick = async ()=>{
+            const body = { name: $('u_name').value.trim(), date_birth: $('u_birth').value.trim(), phone: ($('u_phone').value.trim()||null) };
+            try{ await jpost('/api/users', body); $('u_name').value=''; $('u_birth').value=''; $('u_phone').value=''; await loadUsers(); }catch(e){ alert(e.message); }
+        };
+        $('btnReloadUsers').onclick = loadUsers;
+
+        async function loadUsersForLoans(){
+            try{
+                const users = await jget('/api/users');
+                $('l_user').innerHTML = (users||[]).map(x=>`<option value="${x.id}">${esc(x.name)} — билет ${x.ticket_number}</option>`).join('');
+            }catch{}
+        }
+        async function loadBooksOptions(){
+            try{
+                const books = await jget('/api/books');
+                $('l_book').innerHTML = (books||[]).map(x=>`<option value="${x.id}">${esc(x.title)} — ${esc(x.author_name)}</option>`).join('');
+            }catch{}
+        }
+        async function loadLoans(active){
+            try{
+                const data = await jget('/api/loans'+(active?'?active=true':'')); const tbl = $('loans_tbl');
+                tbl.innerHTML = '<tr><th>Пользователь</th><th>Книга</th><th>Выдана</th><th>Возврат</th><th></th></tr>';
+                (data||[]).forEach(x=>{
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+          <td>${esc(x.user_name)}</td>
+          <td>${esc(x.book_title)}</td>
+          <td>${esc(x.date_issue)}</td>
+          <td>${x.date_return?esc(x.date_return):'<span class="muted">—</span>'}</td>
+          <td class="actions"></td>`;
+                    const act=tr.querySelector('.actions');
+                    if(!x.date_return){
+                        const ret = document.createElement('button'); ret.textContent='Принять';
+                        ret.onclick=async()=>{
+                            let date = prompt('Дата возврата (ДД/ММ/ГГГГ):', new Date().toLocaleDateString('ru-RU').replaceAll('.', '/'));
+                            if(!date) return;
+                            try{
+                                await jpost('/api/loans/return',{loan_id:x.id, return_date:date});
+                                await loadLoans(true);
+                            }catch(e){ alert(e.message); }
+                        };
+                        act.append(ret);
+                    }
+                    const del = document.createElement('button'); del.textContent='Удалить'; del.style.marginLeft='6px';
+                    del.onclick=async()=>{ if(!confirm('Удалить выдачу?')) return; try{ await jdel('/api/loans/'+x.id); await loadLoans(true);}catch(e){ alert(e.message);} };
+                    act.append(del);
+                    tbl.appendChild(tr);
+                });
+            }catch(e){ alert(e.message); }
+        }
+        $('btnIssue').onclick = async ()=>{
+            const body = {
+                user_id: $('l_user').value,
+                book_id: $('l_book').value,
+                issue_date: $('l_issue').value.trim() || new Date().toLocaleDateString('ru-RU').replaceAll('.', '/')
+            };
+            try{ await jpost('/api/loans/issue', body); await loadLoans(true); }catch(e){ alert(e.message); }
+        };
+        $('btnShowActive').onclick = ()=>loadLoans(true);
+        $('btnShowAll').onclick = ()=>loadLoans(false);
+        $('btnRep1').onclick = async ()=>{
+            try{
+                const y = $('rep_year').value || new Date().getFullYear();
+                const data = await jget('/api/reports/issues-per-month?year='+encodeURIComponent(y));
+                $('rep1_tbl').innerHTML = '<tr><th>Месяц</th><th class="right">Выдач</th></tr>' +
+                    (data||[]).map(x=>`<tr><td>${x.month}</td><td class="right">${x.issues}</td></tr>`).join('');
+            }catch(e){ alert(e.message); }
+        };
+        $('btnRep2').onclick = async ()=>{
+            try{
+                const data = await jget('/api/reports/oldest-per-room');
+                $('rep2_tbl').innerHTML = '<tr><th>Зал</th><th>Книга</th><th class="right">Возраст</th></tr>'+
+                    (data||[]).map(x=>`<tr><td>${esc(x.room)}</td><td>${esc(x.title)}</td><td class="right">${x.age}</td></tr>`).join('');
+            }catch(e){ alert(e.message); }
+        };
+
+        async function loadGroupsForReport(){
+            try{
+                const groups = await jget('/api/groups');
+                const el=$('rep_groups');
+                el.innerHTML = (groups||[]).map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
+            }catch{}
+        }
+        function selectedValues(sel){ return Array.from(sel.selectedOptions).map(o=>o.value); }
+
+        $('btnRep3').onclick = async ()=>{
+            try{
+                const chosen = selectedValues($('rep_groups'));
+                if(chosen.length===0){ $('rep3_tbl').innerHTML='<tr><th>Зал</th></tr>'; return; }
+                const qs = encodeURIComponent(chosen.join(','));
+                const data = await jget('/api/reports/rooms-by-groups?groups='+qs);
+                $('rep3_tbl').innerHTML = '<tr><th>Зал</th></tr>' + (data||[]).map(n=>`<tr><td>${esc(n)}</td></tr>`).join('');
+            }catch(e){ alert(e.message); }
+        };
+
+        $('btnRep4').onclick = async ()=>{
+            try{
+                const data = await jget('/api/reports/top5-last-month');
+                $('rep4_tbl').innerHTML = '<tr><th>Книга</th><th>Автор</th><th class="right">Выдач</th></tr>'+
+                    (data||[]).map(x=>`<tr><td>${esc(x.title)}</td><td>${esc(x.author)}</td><td class="right">${x.count}</td></tr>`).join('');
+            }catch(e){ alert(e.message); }
+        };
+
+        (async function init(){
+            await maybeRefreshBookSelects();
+            showTab(initTab);
+        })();
+
+    })();
+</script>
+</body>
+</html>
