@@ -9,7 +9,6 @@
         *{box-sizing:border-box}
         body{font-family:system-ui,Segoe UI,Arial,sans-serif;background:#fff;color:#111;max-width:1200px;margin:20px auto;padding:0 12px}
         header{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:8px}
-        nav a{padding:6px 10px;border:1px solid var(--b);border-radius:8px;text-decoration:none;color:#111;background:#fff}
         .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
         .tabs button{padding:8px 10px;border:1px solid var(--b);background:#fff;border-radius:8px;cursor:pointer}
         section{border:1px solid var(--b);border-radius:12px;padding:12px;margin:12px 0;background:#fff}
@@ -30,17 +29,6 @@
 <body>
 <header>
     <h1>Библиотека</h1>
-    <nav>
-        <a href="/?tab=books" target="_blank">Книги</a>
-        <a href="/?tab=users" target="_blank">Пользователи</a>
-        <a href="/?tab=rooms" target="_blank">Залы</a>
-        <a href="/?tab=authors" target="_blank">Авторы</a>
-        <a href="/?tab=places" target="_blank">Города</a>
-        <a href="/?tab=publishers" target="_blank">Издательства</a>
-        <a href="/?tab=groups" target="_blank">Группы</a>
-        <a href="/?tab=loans" target="_blank">Выдачи</a>
-        <a href="/?tab=reports" target="_blank">Отчёты</a>
-    </nav>
 </header>
 
 <div class="tabs">
@@ -55,7 +43,6 @@
     <button data-tab="reports">Отчёты</button>
 </div>
 
-<!-- BOOKS -->
 <section class="tab" id="tab-books">
     <h2>Книги</h2>
     <div class="row">
@@ -156,7 +143,7 @@
         <div class="report-head">
             <input id="rep_year" type="number" placeholder="Год" value="2025" style="width:120px">
             <button class="primary" id="btnRep1">Выдачи по месяцам</button>
-            <button onclick="toggleBox('rep1_box')">Скрыть/показать</button>
+            <button id="btnRep1Toggle">Скрыть/показать</button>
         </div>
         <div id="rep1_box"><table id="rep1_tbl"></table></div>
     </div>
@@ -164,7 +151,7 @@
     <div class="report-card">
         <div class="report-head">
             <button class="primary" id="btnRep2">Старейшая книга в каждом зале</button>
-            <button onclick="toggleBox('rep2_box')">Скрыть/показать</button>
+            <button id="btnRep2Toggle">Скрыть/показать</button>
         </div>
         <div id="rep2_box"><table id="rep2_tbl"></table></div>
     </div>
@@ -172,11 +159,11 @@
     <div class="report-card">
         <div class="report-head">
             <div style="display:flex;flex-direction:column;gap:6px">
-                <label for="rep_groups">Выберите группы (мультивыбор)</label>
+                <label for="rep_groups">Выберите группы</label>
                 <select id="rep_groups" multiple size="6"></select>
             </div>
             <button class="primary" id="btnRep3">Залы с книгами выбранных групп</button>
-            <button onclick="toggleBox('rep3_box')">Скрыть/показать</button>
+            <button id="btnRep3Toggle">Скрыть/показать</button>
         </div>
         <div id="rep3_box"><table id="rep3_tbl"></table></div>
     </div>
@@ -184,7 +171,7 @@
     <div class="report-card">
         <div class="report-head">
             <button class="primary" id="btnRep4">ТОП-5 за прошедший месяц</button>
-            <button onclick="toggleBox('rep4_box')">Скрыть/показать</button>
+            <button id="btnRep4Toggle">Скрыть/показать</button>
         </div>
         <div id="rep4_box"><table id="rep4_tbl"></table></div>
     </div>
@@ -196,7 +183,6 @@
         const esc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 
         function toggleBox(id){ const el=$(id); if(el) el.hidden=!el.hidden; }
-        window.toggleBox = toggleBox;
 
         function showTab(name){
             document.querySelectorAll('.tab').forEach(x=>x.hidden=true);
@@ -224,6 +210,36 @@
         async function loadPublishers(){ const data=await jget('/api/publishers'); renderDictTable('publishers_tbl', data, 'Издательство', '/api/publishers/'); fillSelect('b_publisher', data, true); }
         async function loadGroups(){ const data=await jget('/api/groups'); renderDictTable('groups_tbl', data, 'Группа', '/api/groups/'); fillSelect('b_group', data, true); }
         async function loadRooms(){ const data=await jget('/api/rooms'); renderDictTable('rooms_tbl', data, 'Зал', '/api/rooms/'); fillSelect('b_room', data, true); }
+
+        $('btnAddAuthor')?.addEventListener('click', async ()=>{
+            const name = $('a_name').value.trim(); if(!name) return;
+            try{ await jpost('/api/authors',{name}); $('a_name').value=''; await loadAuthors(); }catch(e){ alert(e.message); }
+        });
+        $('btnReloadAuthors')?.addEventListener('click', loadAuthors);
+
+        $('btnAddPlace')?.addEventListener('click', async ()=>{
+            const name = $('p_name').value.trim(); if(!name) return;
+            try{ await jpost('/api/places',{name}); $('p_name').value=''; await loadPlaces(); }catch(e){ alert(e.message); }
+        });
+        $('btnReloadPlaces')?.addEventListener('click', loadPlaces);
+
+        $('btnAddPublisher')?.addEventListener('click', async ()=>{
+            const name = $('ph_name').value.trim(); if(!name) return;
+            try{ await jpost('/api/publishers',{name}); $('ph_name').value=''; await loadPublishers(); }catch(e){ alert(e.message); }
+        });
+        $('btnReloadPublishers')?.addEventListener('click', loadPublishers);
+
+        $('btnAddGroup')?.addEventListener('click', async ()=>{
+            const name = $('g_name').value.trim(); if(!name) return;
+            try{ await jpost('/api/groups',{name}); $('g_name').value=''; await loadGroups(); }catch(e){ alert(e.message); }
+        });
+        $('btnReloadGroups')?.addEventListener('click', loadGroups);
+
+        $('btnAddRoom')?.addEventListener('click', async ()=>{
+            const name = $('r_name').value.trim(); if(!name) return;
+            try{ await jpost('/api/rooms',{name}); $('r_name').value=''; await loadRooms(); }catch(e){ alert(e.message); }
+        });
+        $('btnReloadRooms')?.addEventListener('click', loadRooms);
 
         function fillSelect(id, arr, requireChoose=false){
             const el=$(id); if(!el || !Array.isArray(arr)) return;
@@ -375,8 +391,8 @@
                 await loadBooks();
             }catch(e){ alert(e.message); }
         }
-        $('btnAddBook').onclick = addBook;
-        $('btnReloadBooks').onclick = loadBooks;
+        $('btnAddBook').addEventListener('click', addBook);
+        $('btnReloadBooks').addEventListener('click', loadBooks);
 
         async function loadUsers(){
             try{
@@ -415,11 +431,11 @@
                 });
             }catch(e){ alert(e.message); }
         }
-        $('btnAddUser').onclick = async ()=>{
+        $('btnAddUser').addEventListener('click', async ()=>{
             const body = { name: $('u_name').value.trim(), date_birth: $('u_birth').value.trim(), phone: ($('u_phone').value.trim()||null) };
             try{ await jpost('/api/users', body); $('u_name').value=''; $('u_birth').value=''; $('u_phone').value=''; await loadUsers(); }catch(e){ alert(e.message); }
-        };
-        $('btnReloadUsers').onclick = loadUsers;
+        });
+        $('btnReloadUsers').addEventListener('click', loadUsers);
 
         async function loadUsersForLoans(){
             try{
@@ -465,31 +481,35 @@
                 });
             }catch(e){ alert(e.message); }
         }
-        $('btnIssue').onclick = async ()=>{
+        $('btnIssue').addEventListener('click', async ()=>{
             const body = {
                 user_id: $('l_user').value,
                 book_id: $('l_book').value,
                 issue_date: $('l_issue').value.trim() || new Date().toLocaleDateString('ru-RU').replaceAll('.', '/')
             };
             try{ await jpost('/api/loans/issue', body); await loadLoans(true); }catch(e){ alert(e.message); }
-        };
-        $('btnShowActive').onclick = ()=>loadLoans(true);
-        $('btnShowAll').onclick = ()=>loadLoans(false);
-        $('btnRep1').onclick = async ()=>{
+        });
+        $('btnShowActive').addEventListener('click', ()=>loadLoans(true));
+        $('btnShowAll').addEventListener('click', ()=>loadLoans(false));
+
+        $('btnRep1').addEventListener('click', async ()=>{
             try{
                 const y = $('rep_year').value || new Date().getFullYear();
                 const data = await jget('/api/reports/issues-per-month?year='+encodeURIComponent(y));
                 $('rep1_tbl').innerHTML = '<tr><th>Месяц</th><th class="right">Выдач</th></tr>' +
                     (data||[]).map(x=>`<tr><td>${x.month}</td><td class="right">${x.issues}</td></tr>`).join('');
             }catch(e){ alert(e.message); }
-        };
-        $('btnRep2').onclick = async ()=>{
+        });
+        $('btnRep1Toggle').addEventListener('click', ()=>toggleBox('rep1_box'));
+
+        $('btnRep2').addEventListener('click', async ()=>{
             try{
                 const data = await jget('/api/reports/oldest-per-room');
                 $('rep2_tbl').innerHTML = '<tr><th>Зал</th><th>Книга</th><th class="right">Возраст</th></tr>'+
                     (data||[]).map(x=>`<tr><td>${esc(x.room)}</td><td>${esc(x.title)}</td><td class="right">${x.age}</td></tr>`).join('');
             }catch(e){ alert(e.message); }
-        };
+        });
+        $('btnRep2Toggle').addEventListener('click', ()=>toggleBox('rep2_box'));
 
         async function loadGroupsForReport(){
             try{
@@ -500,7 +520,7 @@
         }
         function selectedValues(sel){ return Array.from(sel.selectedOptions).map(o=>o.value); }
 
-        $('btnRep3').onclick = async ()=>{
+        $('btnRep3').addEventListener('click', async ()=>{
             try{
                 const chosen = selectedValues($('rep_groups'));
                 if(chosen.length===0){ $('rep3_tbl').innerHTML='<tr><th>Зал</th></tr>'; return; }
@@ -508,15 +528,17 @@
                 const data = await jget('/api/reports/rooms-by-groups?groups='+qs);
                 $('rep3_tbl').innerHTML = '<tr><th>Зал</th></tr>' + (data||[]).map(n=>`<tr><td>${esc(n)}</td></tr>`).join('');
             }catch(e){ alert(e.message); }
-        };
+        });
+        $('btnRep3Toggle').addEventListener('click', ()=>toggleBox('rep3_box'));
 
-        $('btnRep4').onclick = async ()=>{
+        $('btnRep4').addEventListener('click', async ()=>{
             try{
                 const data = await jget('/api/reports/top5-last-month');
-                $('rep4_tbl').innerHTML = '<tr><th>Книга</th><th>Автор</th><th class="right">Выдач</th></tr>'+
-                    (data||[]).map(x=>`<tr><td>${esc(x.title)}</td><td>${esc(x.author)}</td><td class="right">${x.count}</td></tr>`).join('');
+                $('rep4_tbl').innerHTML = '<tr><th>Книга</th><th class="right">Выдач</th></tr>'+
+                    (data||[]).map(x=>`<tr><td>${esc(x.title)}</td><td class="right">${x.cnt ?? x.count ?? x.issues ?? 0}</td></tr>`).join('');
             }catch(e){ alert(e.message); }
-        };
+        });
+        $('btnRep4Toggle').addEventListener('click', ()=>toggleBox('rep4_box'));
 
         (async function init(){
             await maybeRefreshBookSelects();
