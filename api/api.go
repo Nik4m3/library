@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strings"
 	"time"
@@ -21,53 +23,66 @@ func NewAPI(db *pgxpool.Pool) *API { return &API{db: db} }
 
 func (a *API) Routes() chi.Router {
 	r := chi.NewRouter()
+	r.Post("/auth/login", a.login)
+	r.Group(func(r chi.Router) {
+		r.Use(a.auth)
 
-	r.Get("/books", a.listBooks)
-	r.Post("/books", a.createBook)
-	r.Put("/books/{id}", a.updateBook)
-	r.Delete("/books/{id}", a.deleteBook)
+		// BOOKS
+		r.Get("/books", a.listBooks)
+		r.Post("/books", a.createBook)
+		r.Put("/books/{id}", a.updateBook)
+		r.Delete("/books/{id}", a.deleteBook)
 
-	r.Get("/users", a.listUsers)
-	r.Post("/users", a.createUser)
-	r.Put("/users/{id}", a.updateUser)
-	r.Delete("/users/{id}", a.deleteUser)
+		// USERS (читатели)
+		r.Get("/users", a.listUsers)
+		r.Post("/users", a.createUser)
+		r.Put("/users/{id}", a.updateUser)
+		r.Delete("/users/{id}", a.deleteUser)
 
-	r.Get("/authors", a.listAuthors)
-	r.Post("/authors", a.createAuthor)
-	r.Put("/authors/{id}", a.updateAuthor)
-	r.Delete("/authors/{id}", a.deleteAuthor)
+		// AUTHORS
+		r.Get("/authors", a.listAuthors)
+		r.Post("/authors", a.createAuthor)
+		r.Put("/authors/{id}", a.updateAuthor)
+		r.Delete("/authors/{id}", a.deleteAuthor)
 
-	r.Get("/places", a.listPlaces)
-	r.Post("/places", a.createPlace)
-	r.Put("/places/{id}", a.updatePlace)
-	r.Delete("/places/{id}", a.deletePlace)
+		// PLACES
+		r.Get("/places", a.listPlaces)
+		r.Post("/places", a.createPlace)
+		r.Put("/places/{id}", a.updatePlace)
+		r.Delete("/places/{id}", a.deletePlace)
 
-	r.Get("/publishers", a.listPublishers)
-	r.Post("/publishers", a.createPublisher)
-	r.Put("/publishers/{id}", a.updatePublisher)
-	r.Delete("/publishers/{id}", a.deletePublisher)
+		// PUBLISHERS
+		r.Get("/publishers", a.listPublishers)
+		r.Post("/publishers", a.createPublisher)
+		r.Put("/publishers/{id}", a.updatePublisher)
+		r.Delete("/publishers/{id}", a.deletePublisher)
 
-	r.Get("/groups", a.listGroups)
-	r.Post("/groups", a.createGroup)
-	r.Put("/groups/{id}", a.updateGroup)
-	r.Delete("/groups/{id}", a.deleteGroup)
+		// GROUPS
+		r.Get("/groups", a.listGroups)
+		r.Post("/groups", a.createGroup)
+		r.Put("/groups/{id}", a.updateGroup)
+		r.Delete("/groups/{id}", a.deleteGroup)
 
-	r.Get("/rooms", a.listRooms)
-	r.Post("/rooms", a.createRoom)
-	r.Put("/rooms/{id}", a.updateRoom)
-	r.Delete("/rooms/{id}", a.deleteRoom)
+		// ROOMS
+		r.Get("/rooms", a.listRooms)
+		r.Post("/rooms", a.createRoom)
+		r.Put("/rooms/{id}", a.updateRoom)
+		r.Delete("/rooms/{id}", a.deleteRoom)
 
-	r.Get("/loans", a.listLoans)
-	r.Post("/loans/issue", a.issueBook)
-	r.Post("/loans/return", a.returnBook)
-	r.Delete("/loans/{id}", a.deleteLoan)
-
-	r.Get("/reports/issues-per-month", a.reportIssuesPerMonth)
-	r.Get("/reports/oldest-per-room", a.reportOldestPerRoom)
-	r.Get("/reports/rooms-by-groups", a.reportRoomsByGroups)
-	r.Get("/reports/top5-last-month", a.reportTop5LastMonth)
+		// LOANS
+		r.Get("/loans", a.listLoans)
+		r.Post("/loans/issue", a.issueBook)
+		r.Post("/loans/return", a.returnBook)
+		r.Delete("/loans/{id}", a.deleteLoan)
+	})
 
 	return r
+}
+
+type Employee struct {
+	ID           string
+	Login        string
+	PasswordHash string
 }
 
 type BookRow struct {
@@ -718,4 +733,48 @@ func (a *API) deleteLoan(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(204)
+}
+
+func (a *API) login(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Login    string `json:"login"`
+		Password string `json:"password"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		bad(w, err, 400)
+		return
+	}
+
+	var e Employee
+	err := a.db.QueryRow(context.Background(),
+		`SELECT id, login, password_hash FROM employees WHERE login=$1`,
+		in.Login,
+	).Scan(&e.ID, &e.Login, &e.PasswordHash)
+
+	if err != nil {
+		bad(w, fmt.Errorf("invalid credentials"), 401)
+		return
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(e.PasswordHash), []byte(in.Password)); err != nil {
+		fmt.Println(err)
+		bad(w, fmt.Errorf("invalid credentials"), 401)
+		return
+	}
+
+	token := uuid.NewString()
+	writeJSON(w, map[string]string{
+		"token": token,
+	})
+}
+
+func (a *API) auth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		token := strings.TrimSpace(r.Header.Get("Authorization"))
+		if token == "" {
+			http.Error(w, "unauthorized", 401)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

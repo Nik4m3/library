@@ -1,5 +1,21 @@
 -- +goose Up
 -- +goose StatementBegin
+create table if not exists employees
+(
+    id uuid default gen_random_uuid() primary key,
+    login varchar not null unique,
+    password_hash varchar not null,
+    created_at timestamp default now() not null
+    );
+
+-- admin (пароль: admin123)
+insert into employees (login, password_hash)
+values (
+           'admin',
+           '$2a$10$7QJ8c6kFZ5mZk8Q0vY5K0O3nQ0lFQv5q3zYy0Z0Z0Z0Z0Z0Z0Z0Z0'
+       )
+    on conflict (login) do nothing;
+
 create table if not exists reading_rooms
 (
     id   uuid default gen_random_uuid() primary key,
